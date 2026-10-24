@@ -1,0 +1,6 @@
+{
+  "appId": "com.tasave.app",
+  "appName": "Tasa VE",
+  "webDir": "www",
+  "plugins": { "CapacitorHttp": { "enabled": true } }
+}
