@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tasa VE</title>
+<style>
+:root{--bg:#f2f4f7;--fg:#101828;--mut:#667085;--card:#fff;--line:#e4e7ec;--usd:#12805c;--eur:#2c5fd1;--usdbg:#e3f5ee;--eurbg:#e6edfc;--cur:var(--usd);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0c1016;--fg:#eef1f6;--mut:#8b97a8;--card:#151b24;--line:#232c39;--usd:#3fd29a;--eur:#7ba1ff;--usdbg:#10281f;--eurbg:#16223d;color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Roboto,sans-serif}
+body{padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+h1{font-size:22px;font-weight:800;margin:0}
+.date{font-size:12px;color:var(--mut);display:flex;gap:8px;align-items:center}
+#rf{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700}
+.rates{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rate{border-radius:16px;padding:14px;border:2px solid transparent;text-align:left;font-family:inherit;color:var(--fg);min-width:0}
+.rate.usd{background:var(--usdbg)}.rate.eur{background:var(--eurbg)}
+.rate.on.usd{border-color:var(--usd)}.rate.on.eur{border-color:var(--eur)}
+.rate small{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--mut)}
+.rate b{display:block;font-size:26px;font-weight:800;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.usd b{color:var(--usd)}.eur b{color:var(--eur)}
+.rate span{font-size:12px;color:var(--mut)}
+.card{background:var(--card);border-radius:16px;padding:14px;margin-top:10px;border:1px solid var(--line)}
+.fld{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;background:var(--bg)}
+.fld+.fld{margin-top:8px}
+.fld label{font-size:13px;font-weight:700;color:var(--mut);width:38px}
+.fld input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font:800 22px system-ui,sans-serif;font-variant-numeric:tabular-nums;padding:8px 0;outline:0;text-align:right}
+.fld:focus-within{border-color:var(--cur)}
+h2{font-size:13px;font-weight:700;color:var(--mut);margin:0 0 6px;letter-spacing:.04em}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+td,th{padding:11px 4px;font-size:15px;border-bottom:1px solid var(--line)}
+tr:last-child td{border:0}
+th{font-size:12px;color:var(--mut);font-weight:700;text-align:left}
+td:last-child,th:last-child{text-align:right;font-weight:700}
+.foot{font-size:11.5px;color:var(--mut);margin:12px 4px 0;line-height:1.45}
+</style></head><body>
+<header><h1>Tasa VE</h1><span class="date"><span id="dt">BCV</span><button id="rf">Actualizar</button></span></header>
+<div class="rates">
+  <button class="rate usd on" id="bu"><small>DÓLAR</small><b id="vu"></b><span>Bs por US$1</span></button>
+  <button class="rate eur" id="be"><small>EURO</small><b id="ve"></b><span>Bs por €1</span></button>
+</div>
+<div class="card">
+  <div class="fld"><label id="l1">US$</label><input id="a" type="text" inputmode="decimal" value="1.00" aria-label="Monto en divisa"></div>
+  <div class="fld"><label>Bs</label><input id="b" type="text" inputmode="decimal" aria-label="Monto en bolívares"></div>
+</div>
+<div class="card">
+  <h2>EQUIVALENCIAS</h2>
+  <table><thead><tr><th id="th1">US$</th><th>Bs</th></tr></thead><tbody id="tb"></tbody></table>
+</div>
+<p class="foot" id="ft"></p>
+<script>
+var R={usd:886.2271,eur:993.0884},cur='usd',S={usd:'US$',eur:'€'},when='23 oct 2026 (guardada)';
+try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when}}catch(e){}
+var f=function(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
+var num=function(s){return parseFloat(String(s).replace(/,/g,''))||0};
+var A=document.getElementById('a'),B=document.getElementById('b'),$=function(i){return document.getElementById(i)};
+function table(){$('tb').innerHTML=[1,5,10,20,50,100,500,1000].map(function(n){return '<tr><td>'+S[cur]+' '+f(n)+'</td><td>'+f(n*R[cur])+'</td></tr>'}).join('')}
+function fromA(){B.value=f(num(A.value)*R[cur])}
+function fromB(){A.value=f(num(B.value)/R[cur])}
+function show(){$('vu').textContent=f(R.usd);$('ve').textContent=f(R.eur);$('dt').textContent='BCV · '+when;table();fromA()}
+function pick(k){cur=k;$('bu').classList.toggle('on',k=='usd');$('be').classList.toggle('on',k=='eur');$('l1').textContent=S[k];$('th1').textContent=S[k];document.documentElement.style.setProperty('--cur',k=='usd'?'var(--usd)':'var(--eur)');table();fromA()}
+function get(u){return fetch(u).then(function(r){return r.json()}).then(function(j){var v=Number(j.promedio||j.venta);if(!(v>0))throw 0;return {v:v,d:j.fechaActualizacion}})}
+function load(){
+  $('ft').textContent='Actualizando…';
+  Promise.all([get('https://ve.dolarapi.com/v1/dolares/oficial'),get('https://ve.dolarapi.com/v1/euros/oficial')]).then(function(x){
+    R={usd:x[0].v,eur:x[1].v};
+    var d=x[0].d?new Date(x[0].d):new Date();
+    when=d.toLocaleDateString('es-VE',{day:'numeric',month:'short'});
+    try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when}))}catch(e){}
+    $('ft').textContent='Tasas oficiales del BCV actualizadas.';show();
+  }).catch(function(){$('ft').textContent='Sin conexión o servicio no disponible. Se muestran las últimas tasas guardadas.';show()});
+}
+$('bu').onclick=function(){pick('usd')};$('be').onclick=function(){pick('eur')};$('rf').onclick=load;
+A.addEventListener('input',fromA);B.addEventListener('input',fromB);
+[A,B].forEach(function(x){x.addEventListener('blur',function(){x.value=f(num(x.value))});x.addEventListener('focus',function(){x.select()})});
+show();pick('usd');load();
+</script></body></html>
