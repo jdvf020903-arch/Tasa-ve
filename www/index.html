@@ -2,43 +2,56 @@
 <html lang="es"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f17">
 <title>Tasa VE</title>
 <style>
-:root{--bg:#f2f4f7;--fg:#101828;--mut:#667085;--card:#fff;--line:#e4e7ec;--usd:#12805c;--eur:#2c5fd1;--usdbg:#e3f5ee;--eurbg:#e6edfc;--cur:var(--usd);color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#0c1016;--fg:#eef1f6;--mut:#8b97a8;--card:#151b24;--line:#232c39;--usd:#3fd29a;--eur:#7ba1ff;--usdbg:#10281f;--eurbg:#16223d;color-scheme:dark}}
+:root{--bg:#0b0f17;--card:#141b29;--field:#0e1420;--line:#222c3f;--fg:#f4f7fb;--mut:#8f9db5;--usd:#19d38e;--eur:#7c9aff;--cur:#19d38e;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Roboto,sans-serif}
-body{padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-h1{font-size:22px;font-weight:800;margin:0}
-.date{font-size:12px;color:var(--mut);display:flex;gap:8px;align-items:center}
-#rf{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700}
-.rates{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.rate{border-radius:16px;padding:14px;border:2px solid transparent;text-align:left;font-family:inherit;color:var(--fg);min-width:0}
-.rate.usd{background:var(--usdbg)}.rate.eur{background:var(--eurbg)}
-.rate.on.usd{border-color:var(--usd)}.rate.on.eur{border-color:var(--eur)}
-.rate small{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--mut)}
-.rate b{display:block;font-size:26px;font-weight:800;margin:6px 0 2px;font-variant-numeric:tabular-nums}
-.usd b{color:var(--usd)}.eur b{color:var(--eur)}
-.rate span{font-size:12px;color:var(--mut)}
-.card{background:var(--card);border-radius:16px;padding:14px;margin-top:10px;border:1px solid var(--line)}
-.fld{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;background:var(--bg)}
+body{background:radial-gradient(120% 60% at 50% -10%,#1b2a4a 0%,var(--bg) 60%) no-repeat,var(--bg);min-height:100vh;padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+h1{font-size:26px;font-weight:900;margin:0;letter-spacing:-.02em}
+.sub{font-size:12px;color:var(--mut);margin-top:2px}
+#rf{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:20px;font-weight:800}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rate{border:0;border-radius:24px;padding:16px;text-align:left;font-family:inherit;color:#fff;min-width:0;transition:opacity .2s,transform .2s;opacity:.55}
+.rate.on{opacity:1;transform:translateY(-2px)}
+.rate.usd{background:linear-gradient(145deg,#14d391,#0a7a58)}
+.rate.on.usd{box-shadow:0 10px 28px rgba(20,211,145,.35)}
+.rate.eur{background:linear-gradient(145deg,#7c9aff,#3453d6)}
+.rate.on.eur{box-shadow:0 10px 28px rgba(92,125,255,.4)}
+.rate small{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;opacity:.9}
+.rate b{display:block;font-size:32px;font-weight:900;margin:8px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.rate span{font-size:12px;opacity:.85}
+.tt{background:linear-gradient(145deg,#ffcf55,#e08a12);color:#1c1304;border-radius:24px;padding:16px;margin-top:12px;box-shadow:0 10px 28px rgba(240,160,30,.25)}
+.tt small{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two div{background:rgba(255,255,255,.28);border-radius:16px;padding:10px 12px}
+.two span{font-size:12px;font-weight:700;opacity:.8}
+.two b{display:block;font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.card{background:var(--card);border-radius:24px;padding:14px;margin-top:12px;border:1px solid var(--line)}
+.fld{display:flex;align-items:center;gap:10px;background:var(--field);border:2px solid transparent;border-radius:16px;padding:6px 12px}
 .fld+.fld{margin-top:8px}
-.fld label{font-size:13px;font-weight:700;color:var(--mut);width:38px}
-.fld input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font:800 22px system-ui,sans-serif;font-variant-numeric:tabular-nums;padding:8px 0;outline:0;text-align:right}
+.fld label{font-size:13px;font-weight:900;background:var(--cur);color:#06130d;border-radius:8px;padding:4px 9px;min-width:42px;text-align:center}
+.fld input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font:900 26px system-ui,sans-serif;font-variant-numeric:tabular-nums;padding:8px 0;outline:0;text-align:right}
 .fld:focus-within{border-color:var(--cur)}
-h2{font-size:13px;font-weight:700;color:var(--mut);margin:0 0 6px;letter-spacing:.04em}
+h2{font-size:12px;font-weight:800;color:var(--mut);margin:2px 4px 6px;letter-spacing:.08em}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-td,th{padding:11px 4px;font-size:15px;border-bottom:1px solid var(--line)}
+td,th{padding:12px 6px;font-size:16px;border-bottom:1px solid var(--line)}
 tr:last-child td{border:0}
-th{font-size:12px;color:var(--mut);font-weight:700;text-align:left}
-td:last-child,th:last-child{text-align:right;font-weight:700}
-.foot{font-size:11.5px;color:var(--mut);margin:12px 4px 0;line-height:1.45}
+th{font-size:12px;color:var(--mut);font-weight:800;text-align:left}
+td:last-child,th:last-child{text-align:right;font-weight:800}
+td:last-child{color:var(--cur)}
+.foot{font-size:11.5px;color:var(--mut);margin:14px 6px 0;line-height:1.45}
 </style></head><body>
-<header><h1>Tasa VE</h1><span class="date"><span id="dt">BCV</span><button id="rf">Actualizar</button></span></header>
-<div class="rates">
+<header><div><h1>Tasa VE</h1><div class="sub" id="dt">BCV</div></div><button id="rf" aria-label="Actualizar">↻</button></header>
+<div class="cards">
   <button class="rate usd on" id="bu"><small>DÓLAR</small><b id="vu"></b><span>Bs por US$1</span></button>
   <button class="rate eur" id="be"><small>EURO</small><b id="ve"></b><span>Bs por €1</span></button>
+</div>
+<div class="tt">
+  <small>USDT · BINANCE P2P</small>
+  <div class="two"><div><span>Compra</span><b id="uc">—</b></div><div><span>Venta</span><b id="uv">—</b></div></div>
 </div>
 <div class="card">
   <div class="fld"><label id="l1">US$</label><input id="a" type="text" inputmode="decimal" value="1.00" aria-label="Monto en divisa"></div>
@@ -50,29 +63,42 @@ td:last-child,th:last-child{text-align:right;font-weight:700}
 </div>
 <p class="foot" id="ft"></p>
 <script>
-var R={usd:886.2271,eur:993.0884},cur='usd',S={usd:'US$',eur:'€'},when='23 oct 2026 (guardada)';
-try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when}}catch(e){}
+var R={usd:886.2271,eur:993.0884},T={buy:null,sell:null},cur='usd',S={usd:'US$',eur:'€'},C={usd:'#19d38e',eur:'#7c9aff'},when='23 oct (guardada)';
+try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when;if(c.buy){T={buy:c.buy,sell:c.sell}}}}catch(e){}
 var f=function(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 var num=function(s){return parseFloat(String(s).replace(/,/g,''))||0};
 var A=document.getElementById('a'),B=document.getElementById('b'),$=function(i){return document.getElementById(i)};
 function table(){$('tb').innerHTML=[1,5,10,20,50,100,500,1000].map(function(n){return '<tr><td>'+S[cur]+' '+f(n)+'</td><td>'+f(n*R[cur])+'</td></tr>'}).join('')}
 function fromA(){B.value=f(num(A.value)*R[cur])}
 function fromB(){A.value=f(num(B.value)/R[cur])}
-function show(){$('vu').textContent=f(R.usd);$('ve').textContent=f(R.eur);$('dt').textContent='BCV · '+when;table();fromA()}
-function pick(k){cur=k;$('bu').classList.toggle('on',k=='usd');$('be').classList.toggle('on',k=='eur');$('l1').textContent=S[k];$('th1').textContent=S[k];document.documentElement.style.setProperty('--cur',k=='usd'?'var(--usd)':'var(--eur)');table();fromA()}
+function show(){$('vu').textContent=f(R.usd);$('ve').textContent=f(R.eur);$('uc').textContent=T.buy?f(T.buy):'—';$('uv').textContent=T.sell?f(T.sell):'—';$('dt').textContent='BCV · '+when;table();fromA()}
+function pick(k){cur=k;$('bu').classList.toggle('on',k=='usd');$('be').classList.toggle('on',k=='eur');$('l1').textContent=S[k];$('th1').textContent=S[k];document.documentElement.style.setProperty('--cur',C[k]);table();fromA()}
 function get(u){return fetch(u).then(function(r){return r.json()}).then(function(j){var v=Number(j.promedio||j.venta);if(!(v>0))throw 0;return {v:v,d:j.fechaActualizacion}})}
+function p2p(type){
+  return fetch('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fiat:'VES',page:1,rows:5,tradeType:type,asset:'USDT',countries:[],proMerchant:null,publisherType:null,payTypes:[],transAmount:''})})
+  .then(function(r){return r.json()}).then(function(j){
+    var p=(j.data||[]).map(function(x){return Number(x.adv.price)}).filter(function(v){return v>0}).sort(function(a,b){return a-b});
+    if(!p.length)throw 0;return p[Math.floor(p.length/2)];
+  });
+}
+function save(){try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when,buy:T.buy,sell:T.sell}))}catch(e){}}
 function load(){
   $('ft').textContent='Actualizando…';
-  Promise.all([get('https://ve.dolarapi.com/v1/dolares/oficial'),get('https://ve.dolarapi.com/v1/euros/oficial')]).then(function(x){
+  var bcv=Promise.all([get('https://ve.dolarapi.com/v1/dolares/oficial'),get('https://ve.dolarapi.com/v1/euros/oficial')]).then(function(x){
     R={usd:x[0].v,eur:x[1].v};
     var d=x[0].d?new Date(x[0].d):new Date();
-    when=d.toLocaleDateString('es-VE',{day:'numeric',month:'short'});
-    try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when}))}catch(e){}
-    $('ft').textContent='Tasas oficiales del BCV actualizadas.';show();
-  }).catch(function(){$('ft').textContent='Sin conexión o servicio no disponible. Se muestran las últimas tasas guardadas.';show()});
+    when=d.toLocaleDateString('es-VE',{day:'numeric',month:'short'});return 1;
+  }).catch(function(){return 0});
+  var us=Promise.all([p2p('BUY'),p2p('SELL')]).then(function(x){T={buy:x[0],sell:x[1]};return 1}).catch(function(){return 0});
+  Promise.all([bcv,us]).then(function(o){
+    save();show();
+    var h=new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'});
+    $('ft').textContent=(o[0]&&o[1]?'Todo actualizado a las '+h+'.':(o[0]?'BCV actualizado. USDT no disponible.':(o[1]?'USDT actualizado. BCV no disponible.':'Sin conexión. Se muestran los últimos datos guardados.')))+' Se actualiza cada hora mientras la app esté abierta.';
+  });
 }
 $('bu').onclick=function(){pick('usd')};$('be').onclick=function(){pick('eur')};$('rf').onclick=load;
 A.addEventListener('input',fromA);B.addEventListener('input',fromB);
-[A,B].forEach(function(x){x.addEventListener('blur',function(){x.value=f(num(x.value))});x.addEventListener('focus',function(){x.select()})});
-show();pick('usd');load();
+[A,B].forEach(function(x){x.addEventListener('blur',function(){if(x.value.trim()!=='')x.value=f(num(x.value))});x.addEventListener('focus',function(){x.select()})});
+show();pick('usd');load();setInterval(load,3600000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
 </script></body></html>
