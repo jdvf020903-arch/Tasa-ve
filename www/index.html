@@ -24,7 +24,7 @@ h1{font-size:26px;font-weight:900;margin:0;letter-spacing:-.02em}
 .rate.eur{background:linear-gradient(145deg,#7c9aff,#3453d6)}
 .rate.on.eur{box-shadow:0 10px 28px rgba(92,125,255,.4)}
 .rate small{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;opacity:.9}
-.rate b{display:block;font-size:32px;font-weight:900;margin:8px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.rate b{display:block;font-size:30px;font-weight:900;margin:8px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;white-space:nowrap}
 .rate span{font-size:12px;opacity:.85}
 .tt{background:linear-gradient(145deg,#ffcf55,#e08a12);color:#1c1304;border-radius:24px;padding:16px;margin-top:12px;box-shadow:0 10px 28px rgba(240,160,30,.25)}
 .tt small{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:10px}
@@ -38,14 +38,19 @@ h1{font-size:26px;font-weight:900;margin:0;letter-spacing:-.02em}
 .fld label{font-size:13px;font-weight:900;background:var(--cur);color:#06130d;border-radius:8px;padding:4px 9px;min-width:42px;text-align:center}
 .fld input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font:900 26px system-ui,sans-serif;font-variant-numeric:tabular-nums;padding:8px 0;outline:0;text-align:right}
 .fld:focus-within{border-color:var(--cur)}
+.cp{flex:none;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:12px;background:var(--cur);color:#06130d}
+.cp svg{pointer-events:none}
+td .cp{width:32px;height:32px;border-radius:10px}
 h2{font-size:12px;font-weight:800;color:var(--mut);margin:2px 4px 6px;letter-spacing:.08em}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-td,th{padding:12px 6px;font-size:16px;border-bottom:1px solid var(--line)}
+td,th{padding:9px 6px;font-size:16px;border-bottom:1px solid var(--line)}
 tr:last-child td{border:0}
 th{font-size:12px;color:var(--mut);font-weight:800;text-align:left}
 td:last-child,th:last-child{text-align:right;font-weight:800}
 td:last-child{color:var(--cur)}
+.v{display:flex;justify-content:flex-end;align-items:center;gap:10px}
 .foot{font-size:11.5px;color:var(--mut);margin:14px 6px 0;line-height:1.45}
+#nt{background:#2a2410;color:#f0c75e;border-radius:14px;padding:10px 12px;margin:12px 0 0}
 </style></head><body>
 <header><div><h1>Tasa VE</h1><div class="sub" id="dt">BCV</div></div><button id="rf" aria-label="Actualizar">↻</button></header>
 <div class="seg" id="seg" hidden><button id="mh" class="on">Hoy</button><button id="mm">Lunes</button></div>
@@ -53,13 +58,14 @@ td:last-child{color:var(--cur)}
   <button class="rate usd on" id="bu"><small>DÓLAR</small><b id="vu"></b><span>Bs por US$1</span></button>
   <button class="rate eur" id="be"><small>EURO</small><b id="ve"></b><span>Bs por €1</span></button>
 </div>
+<p class="foot" id="nt" hidden></p>
 <div class="tt">
   <small>USDT · BINANCE P2P</small>
   <div class="two"><div><span>Compra</span><b id="uc">—</b></div><div><span>Venta</span><b id="uv">—</b></div></div>
 </div>
 <div class="card">
   <div class="fld"><label id="l1">US$</label><input id="a" type="text" inputmode="decimal" value="1.00" aria-label="Monto en divisa"></div>
-  <div class="fld"><label>Bs</label><input id="b" type="text" inputmode="decimal" aria-label="Monto en bolívares"></div>
+  <div class="fld"><label>Bs</label><input id="b" type="text" inputmode="decimal" aria-label="Monto en bolívares"><button class="cp" id="cb" aria-label="Copiar monto en bolívares"></button></div>
 </div>
 <div class="card">
   <h2>EQUIVALENCIAS</h2>
@@ -67,25 +73,41 @@ td:last-child{color:var(--cur)}
 </div>
 <p class="foot" id="ft"></p>
 <script>
-var R={usd:886.2271,eur:993.0884},N=null,T={buy:null,sell:null},cur='usd',mode='hoy',S={usd:'US$',eur:'€'},C={usd:'#19d38e',eur:'#7c9aff'},when='23 oct (guardada)';
+var R={usd:886.2271,eur:993.0884},N=null,H={},T={buy:null,sell:null},cur='usd',mode='hoy',S={usd:'US$',eur:'€'},C={usd:'#19d38e',eur:'#7c9aff'},when='23 oct (guardada)';
 var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+var ICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
+var OK='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
 function lbl(iso){var p=iso.split('-');return Number(p[2])+' '+MES[Number(p[1])-1]}
 function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when;if(c.buy){T={buy:c.buy,sell:c.sell}}if(c.N&&c.N.date>todayISO())N=c.N}}catch(e){}
+try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when;if(c.buy){T={buy:c.buy,sell:c.sell}}if(c.N&&c.N.date>todayISO())N=c.N;if(c.H)H=c.H}}catch(e){}
 var f=function(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 var num=function(s){return parseFloat(String(s).replace(/,/g,''))||0};
 var A=document.getElementById('a'),B=document.getElementById('b'),$=function(i){return document.getElementById(i)};
-function cv(){return mode=='mon'?N:R}
-function table(){var r=cv();$('tb').innerHTML=r?[1,5,10,20,50,100,500,1000].map(function(n){return '<tr><td>'+S[cur]+' '+f(n)+'</td><td>'+f(n*r[cur])+'</td></tr>'}).join(''):'<tr><td colspan="2">El BCV aún no publica la tasa del lunes.</td></tr>'}
-function fromA(){var r=cv();B.value=r?f(num(A.value)*r[cur]):''}
-function fromB(){var r=cv();if(r)A.value=f(num(B.value)/r[cur])}
+function copy(t,btn){
+  function done(){btn.innerHTML=OK;setTimeout(function(){btn.innerHTML=ICO},1200)}
+  function fb(){var x=document.createElement('textarea');x.value=t;x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();try{document.execCommand('copy');done()}catch(e){}document.body.removeChild(x)}
+  try{navigator.clipboard.writeText(t).then(done).catch(fb)}catch(e){fb()}
+}
+function est(){
+  var k=Object.keys(H).sort().slice(-8),g=[];
+  for(var i=1;i<k.length;i++){var v=H[k[i]]/H[k[i-1]]-1;if(isFinite(v))g.push(v)}
+  var m=g.length?g.reduce(function(a,b){return a+b},0)/g.length:0.0013;
+  m=Math.min(Math.max(m,0),0.005);
+  return {usd:R.usd*(1+m),eur:R.eur*(1+m),g:m,approx:true};
+}
+function cv(){return mode=='mon'?(N||est()):R}
+function table(){var r=cv();$('tb').innerHTML=[1,5,10,20,50,100,500,1000].map(function(n){var v=n*r[cur];return '<tr><td>'+S[cur]+' '+f(n)+'</td><td><div class="v"><span>'+f(v)+'</span><button class="cp" data-v="'+v.toFixed(2)+'" aria-label="Copiar">'+ICO+'</button></div></td></tr>'}).join('')}
+function fromA(){var r=cv();B.value=f(num(A.value)*r[cur])}
+function fromB(){var r=cv();A.value=f(num(B.value)/r[cur])}
 function show(){
   var wd=new Date().getDay(),ok=(wd==5||wd==6||wd==0);
-  $('seg').hidden=!ok;if(!ok)mode='hoy';
-  var r=cv();
-  $('vu').textContent=r?f(r.usd):'—';$('ve').textContent=r?f(r.eur):'—';
+  $('seg').hidden=!ok;if(!ok){mode='hoy';$('mh').classList.add('on');$('mm').classList.remove('on')}
+  var r=cv(),ap=!!r.approx,pre=ap?'≈':'';
+  $('vu').textContent=pre+f(r.usd);$('ve').textContent=pre+f(r.eur);
   $('uc').textContent=T.buy?f(T.buy):'—';$('uv').textContent=T.sell?f(T.sell):'—';
-  $('dt').textContent=mode=='mon'?(N?'BCV · Lunes '+lbl(N.date):'BCV · Lunes sin publicar'):'BCV · '+when;
+  $('dt').textContent=mode=='mon'?(N?'BCV · Lunes '+lbl(N.date)+' · oficial':'Lunes · aproximado'):'BCV · '+when;
+  var nt=$('nt');
+  if(mode=='mon'&&ap){nt.hidden=false;nt.textContent='Estimado con la variación diaria reciente ('+(r.g*100).toFixed(2)+'% por día). El BCV publica la tasa oficial del lunes el viernes por la tarde.'}else{nt.hidden=true}
   table();fromA();
 }
 function setMode(m){mode=m;$('mh').classList.toggle('on',m=='hoy');$('mm').classList.toggle('on',m=='mon');show()}
@@ -98,13 +120,14 @@ function p2p(type){
     if(!p.length)throw 0;return p[Math.floor(p.length/2)];
   });
 }
-function save(){try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when,buy:T.buy,sell:T.sell,N:N}))}catch(e){}}
+function save(){try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when,buy:T.buy,sell:T.sell,N:N,H:H}))}catch(e){}}
 function load(){
   $('ft').textContent='Actualizando…';
   var bcv=Promise.all([get('https://ve.dolarapi.com/v1/dolares/oficial'),get('https://ve.dolarapi.com/v1/euros/oficial')]).then(function(x){
     var d=x[0].d,t=todayISO();
-    if(d&&d>t){N={usd:x[0].v,eur:x[1].v,date:d}}
-    else{R={usd:x[0].v,eur:x[1].v};when=d?lbl(d):when;if(N&&N.date<=t)N=null}
+    if(d&&d>t){N={usd:x[0].v,eur:x[1].v,date:d};H[d]=x[0].v}
+    else{R={usd:x[0].v,eur:x[1].v};when=d?lbl(d):when;if(N&&N.date<=t)N=null;H[d||t]=x[0].v}
+    var ks=Object.keys(H).sort();while(ks.length>12){delete H[ks.shift()]}
     return 1;
   }).catch(function(){return 0});
   var us=Promise.all([p2p('BUY'),p2p('SELL')]).then(function(x){T={buy:x[0],sell:x[1]};return 1}).catch(function(){return 0});
@@ -114,6 +137,9 @@ function load(){
     $('ft').textContent=(o[0]&&o[1]?'Todo actualizado a las '+h+'.':(o[0]?'BCV actualizado. USDT no disponible.':(o[1]?'USDT actualizado. BCV no disponible.':'Sin conexión. Se muestran los últimos datos guardados.')))+' Se actualiza cada hora mientras la app esté abierta.';
   });
 }
+$('cb').innerHTML=ICO;
+$('cb').onclick=function(){copy(num(B.value).toFixed(2),this)};
+$('tb').addEventListener('click',function(e){var b=e.target.closest('.cp');if(b)copy(b.getAttribute('data-v'),b)});
 $('bu').onclick=function(){pick('usd')};$('be').onclick=function(){pick('eur')};$('rf').onclick=load;
 $('mh').onclick=function(){setMode('hoy')};$('mm').onclick=function(){setMode('mon')};
 A.addEventListener('input',fromA);B.addEventListener('input',fromB);
