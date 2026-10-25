@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#0b0f17">
 <title>Tasa VE</title>
 <style>
-:root{--bg:#0b0f17;--card:#141b29;--field:#0e1420;--line:#222c3f;--fg:#f4f7fb;--mut:#8f9db5;--usd:#19d38e;--eur:#7c9aff;--cur:#19d38e;color-scheme:dark}
+:root{--bg:#0b0f17;--card:#141b29;--field:#0e1420;--line:#222c3f;--fg:#f4f7fb;--mut:#8f9db5;--cur:#19d38e;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Roboto,sans-serif}
 body{background:radial-gradient(120% 60% at 50% -10%,#1b2a4a 0%,var(--bg) 60%) no-repeat,var(--bg);min-height:100vh;padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto}
@@ -13,6 +13,9 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 h1{font-size:26px;font-weight:900;margin:0;letter-spacing:-.02em}
 .sub{font-size:12px;color:var(--mut);margin-top:2px}
 #rf{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:20px;font-weight:800}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;color:var(--mut);font:800 14px system-ui,sans-serif;padding:10px;border-radius:12px}
+.seg button.on{background:#fff;color:#0b0f17}
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .rate{border:0;border-radius:24px;padding:16px;text-align:left;font-family:inherit;color:#fff;min-width:0;transition:opacity .2s,transform .2s;opacity:.55}
 .rate.on{opacity:1;transform:translateY(-2px)}
@@ -45,6 +48,7 @@ td:last-child{color:var(--cur)}
 .foot{font-size:11.5px;color:var(--mut);margin:14px 6px 0;line-height:1.45}
 </style></head><body>
 <header><div><h1>Tasa VE</h1><div class="sub" id="dt">BCV</div></div><button id="rf" aria-label="Actualizar">↻</button></header>
+<div class="seg" id="seg" hidden><button id="mh" class="on">Hoy</button><button id="mm">Lunes</button></div>
 <div class="cards">
   <button class="rate usd on" id="bu"><small>DÓLAR</small><b id="vu"></b><span>Bs por US$1</span></button>
   <button class="rate eur" id="be"><small>EURO</small><b id="ve"></b><span>Bs por €1</span></button>
@@ -63,17 +67,30 @@ td:last-child{color:var(--cur)}
 </div>
 <p class="foot" id="ft"></p>
 <script>
-var R={usd:886.2271,eur:993.0884},T={buy:null,sell:null},cur='usd',S={usd:'US$',eur:'€'},C={usd:'#19d38e',eur:'#7c9aff'},when='23 oct (guardada)';
-try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when;if(c.buy){T={buy:c.buy,sell:c.sell}}}}catch(e){}
+var R={usd:886.2271,eur:993.0884},N=null,T={buy:null,sell:null},cur='usd',mode='hoy',S={usd:'US$',eur:'€'},C={usd:'#19d38e',eur:'#7c9aff'},when='23 oct (guardada)';
+var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function lbl(iso){var p=iso.split('-');return Number(p[2])+' '+MES[Number(p[1])-1]}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when;if(c.buy){T={buy:c.buy,sell:c.sell}}if(c.N&&c.N.date>todayISO())N=c.N}}catch(e){}
 var f=function(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 var num=function(s){return parseFloat(String(s).replace(/,/g,''))||0};
 var A=document.getElementById('a'),B=document.getElementById('b'),$=function(i){return document.getElementById(i)};
-function table(){$('tb').innerHTML=[1,5,10,20,50,100,500,1000].map(function(n){return '<tr><td>'+S[cur]+' '+f(n)+'</td><td>'+f(n*R[cur])+'</td></tr>'}).join('')}
-function fromA(){B.value=f(num(A.value)*R[cur])}
-function fromB(){A.value=f(num(B.value)/R[cur])}
-function show(){$('vu').textContent=f(R.usd);$('ve').textContent=f(R.eur);$('uc').textContent=T.buy?f(T.buy):'—';$('uv').textContent=T.sell?f(T.sell):'—';$('dt').textContent='BCV · '+when;table();fromA()}
+function cv(){return mode=='mon'?N:R}
+function table(){var r=cv();$('tb').innerHTML=r?[1,5,10,20,50,100,500,1000].map(function(n){return '<tr><td>'+S[cur]+' '+f(n)+'</td><td>'+f(n*r[cur])+'</td></tr>'}).join(''):'<tr><td colspan="2">El BCV aún no publica la tasa del lunes.</td></tr>'}
+function fromA(){var r=cv();B.value=r?f(num(A.value)*r[cur]):''}
+function fromB(){var r=cv();if(r)A.value=f(num(B.value)/r[cur])}
+function show(){
+  var wd=new Date().getDay(),ok=(wd==5||wd==6||wd==0);
+  $('seg').hidden=!ok;if(!ok)mode='hoy';
+  var r=cv();
+  $('vu').textContent=r?f(r.usd):'—';$('ve').textContent=r?f(r.eur):'—';
+  $('uc').textContent=T.buy?f(T.buy):'—';$('uv').textContent=T.sell?f(T.sell):'—';
+  $('dt').textContent=mode=='mon'?(N?'BCV · Lunes '+lbl(N.date):'BCV · Lunes sin publicar'):'BCV · '+when;
+  table();fromA();
+}
+function setMode(m){mode=m;$('mh').classList.toggle('on',m=='hoy');$('mm').classList.toggle('on',m=='mon');show()}
 function pick(k){cur=k;$('bu').classList.toggle('on',k=='usd');$('be').classList.toggle('on',k=='eur');$('l1').textContent=S[k];$('th1').textContent=S[k];document.documentElement.style.setProperty('--cur',C[k]);table();fromA()}
-function get(u){return fetch(u).then(function(r){return r.json()}).then(function(j){var v=Number(j.promedio||j.venta);if(!(v>0))throw 0;return {v:v,d:j.fechaActualizacion}})}
+function get(u){return fetch(u).then(function(r){return r.json()}).then(function(j){var v=Number(j.promedio||j.venta);if(!(v>0))throw 0;return {v:v,d:String(j.fechaActualizacion||'').slice(0,10)}})}
 function p2p(type){
   return fetch('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fiat:'VES',page:1,rows:5,tradeType:type,asset:'USDT',countries:[],proMerchant:null,publisherType:null,payTypes:[],transAmount:''})})
   .then(function(r){return r.json()}).then(function(j){
@@ -81,13 +98,14 @@ function p2p(type){
     if(!p.length)throw 0;return p[Math.floor(p.length/2)];
   });
 }
-function save(){try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when,buy:T.buy,sell:T.sell}))}catch(e){}}
+function save(){try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when,buy:T.buy,sell:T.sell,N:N}))}catch(e){}}
 function load(){
   $('ft').textContent='Actualizando…';
   var bcv=Promise.all([get('https://ve.dolarapi.com/v1/dolares/oficial'),get('https://ve.dolarapi.com/v1/euros/oficial')]).then(function(x){
-    R={usd:x[0].v,eur:x[1].v};
-    var d=x[0].d?new Date(x[0].d):new Date();
-    when=d.toLocaleDateString('es-VE',{day:'numeric',month:'short'});return 1;
+    var d=x[0].d,t=todayISO();
+    if(d&&d>t){N={usd:x[0].v,eur:x[1].v,date:d}}
+    else{R={usd:x[0].v,eur:x[1].v};when=d?lbl(d):when;if(N&&N.date<=t)N=null}
+    return 1;
   }).catch(function(){return 0});
   var us=Promise.all([p2p('BUY'),p2p('SELL')]).then(function(x){T={buy:x[0],sell:x[1]};return 1}).catch(function(){return 0});
   Promise.all([bcv,us]).then(function(o){
@@ -97,6 +115,7 @@ function load(){
   });
 }
 $('bu').onclick=function(){pick('usd')};$('be').onclick=function(){pick('eur')};$('rf').onclick=load;
+$('mh').onclick=function(){setMode('hoy')};$('mm').onclick=function(){setMode('mon')};
 A.addEventListener('input',fromA);B.addEventListener('input',fromB);
 [A,B].forEach(function(x){x.addEventListener('blur',function(){if(x.value.trim()!=='')x.value=f(num(x.value))});x.addEventListener('focus',function(){x.select()})});
 show();pick('usd');load();setInterval(load,3600000);
