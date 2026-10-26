@@ -142,3 +142,34 @@ function p2p(type){
     if(!p.length)throw 0;return p[Math.floor(p.length/2)];
   });
 }
+function save(){try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when,buy:T.buy,sell:T.sell,N:N,H:H}))}catch(e){}}
+function load(){
+  $('ft').textContent='Actualizando…';
+  var bcv=Promise.all([getUSD(),getEUR().catch(function(){return null})]).then(function(x){
+    var u=x[0],e=x[1],t=todayISO(),ratio=R.eur/R.usd;
+    var ev=e?(e.v||u.v*e.fx):u.v*ratio;fxEur=!!(e&&e.fx)||!e;
+    var d=u.d;
+    if(d&&d>t){N={usd:u.v,eur:ev,date:d};H[d]=u.v}
+    else{R={usd:u.v,eur:ev};when=d?lbl(d):when;if(N&&N.date<=t)N=null;H[d||t]=u.v}
+    var ks=Object.keys(H).sort();while(ks.length>12){delete H[ks.shift()]}
+    return 1;
+  }).catch(function(){return 0});
+  var us=Promise.all([p2p('BUY'),p2p('SELL')]).then(function(x){T={buy:x[0],sell:x[1]};return 1}).catch(function(){return 0});
+  Promise.all([bcv,us]).then(function(o){
+    save();show();
+    var h=new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'});
+    $('ft').textContent=(o[0]&&o[1]?'Todo actualizado a las '+h+'.':(o[0]?'BCV actualizado. USDT no disponible.':(o[1]?'USDT actualizado. BCV no disponible.':'Sin conexión. Se muestran los últimos datos guardados.')))+(o[0]&&fxEur?' Euro calculado con el cambio euro/dólar.':'')+' Se actualiza cada hora mientras la app esté abierta.';
+  });
+}
+$('cb').innerHTML=ICO;
+$('cb').onclick=function(){copy(num(B.value).toFixed(2),this)};
+$('tb').addEventListener('click',function(e){var b=e.target.closest('.cp');if(b)copy(b.getAttribute('data-v'),b)});
+$('bu').onclick=function(){pick('usd')};$('be').onclick=function(){pick('eur')};
+$('bc').onclick=function(){pick('buy')};$('bs').onclick=function(){pick('sell')};
+$('rf').onclick=load;
+$('mh').onclick=function(){setMode('hoy')};$('mm').onclick=function(){setMode('mon')};
+A.addEventListener('input',fromA);B.addEventListener('input',fromB);
+[A,B].forEach(function(x){x.addEventListener('blur',function(){if(x.value.trim()!=='')x.value=f(num(x.value))});x.addEventListener('focus',function(){x.select()})});
+pick('usd');load();setInterval(load,3600000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
+</script></body></html>
