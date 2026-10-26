@@ -8,7 +8,7 @@
 :root{--bg:#0b0f17;--card:#141b29;--field:#0e1420;--line:#222c3f;--fg:#f4f7fb;--mut:#8f9db5;--cur:#19d38e;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Roboto,sans-serif}
-body{background:radial-gradient(120% 60% at 50% -10%,#1b2a4a 0%,var(--bg) 60%) no-repeat,var(--bg);min-height:100vh;padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto}
+body{background:radial-gradient(120% 60% at 50% -10%,#1b2a4a 0%,var(--bg) 60%) no-repeat,var(--bg);min-height:100vh;padding:calc(max(env(safe-area-inset-top,0px),34px) + 12px) 16px calc(max(env(safe-area-inset-bottom,0px),24px) + 40px);max-width:480px;margin:0 auto}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 h1{font-size:26px;font-weight:900;margin:0;letter-spacing:-.02em}
 .sub{font-size:12px;color:var(--mut);margin-top:2px}
@@ -29,7 +29,8 @@ h1{font-size:26px;font-weight:900;margin:0;letter-spacing:-.02em}
 .tt{background:linear-gradient(145deg,#ffcf55,#e08a12);color:#1c1304;border-radius:24px;padding:16px;margin-top:12px;box-shadow:0 10px 28px rgba(240,160,30,.25)}
 .tt small{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:10px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.two div{background:rgba(255,255,255,.28);border-radius:16px;padding:10px 12px}
+.two button{background:rgba(255,255,255,.28);border:2px solid transparent;border-radius:16px;padding:10px 12px;text-align:left;font-family:inherit;color:#1c1304;min-width:0}
+.two button.on{background:rgba(255,255,255,.55);border-color:#1c1304}
 .two span{font-size:12px;font-weight:700;opacity:.8}
 .two b{display:block;font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
 .card{background:var(--card);border-radius:24px;padding:14px;margin-top:12px;border:1px solid var(--line)}
@@ -53,7 +54,7 @@ td:last-child{color:var(--cur)}
 #nt{background:#2a2410;color:#f0c75e;border-radius:14px;padding:10px 12px;margin:12px 0 0}
 </style></head><body>
 <header><div><h1>Tasa VE</h1><div class="sub" id="dt">BCV</div></div><button id="rf" aria-label="Actualizar">↻</button></header>
-<div class="seg" id="seg" hidden><button id="mh" class="on">Hoy</button><button id="mm">Lunes</button></div>
+<div class="seg" id="seg" hidden><button id="mh" class="on">Hoy</button><button id="mm">Próxima</button></div>
 <div class="cards">
   <button class="rate usd on" id="bu"><small>DÓLAR</small><b id="vu"></b><span>Bs por US$1</span></button>
   <button class="rate eur" id="be"><small>EURO</small><b id="ve"></b><span>Bs por €1</span></button>
@@ -61,7 +62,7 @@ td:last-child{color:var(--cur)}
 <p class="foot" id="nt" hidden></p>
 <div class="tt">
   <small>USDT · BINANCE P2P</small>
-  <div class="two"><div><span>Compra</span><b id="uc">—</b></div><div><span>Venta</span><b id="uv">—</b></div></div>
+  <div class="two"><button id="bc"><span>Compra</span><b id="uc">—</b></button><button id="bs"><span>Venta</span><b id="uv">—</b></button></div>
 </div>
 <div class="card">
   <div class="fld"><label id="l1">US$</label><input id="a" type="text" inputmode="decimal" value="1.00" aria-label="Monto en divisa"></div>
@@ -73,16 +74,18 @@ td:last-child{color:var(--cur)}
 </div>
 <p class="foot" id="ft"></p>
 <script>
-var R={usd:886.2271,eur:993.0884},N=null,H={},T={buy:null,sell:null},cur='usd',mode='hoy',S={usd:'US$',eur:'€'},C={usd:'#19d38e',eur:'#7c9aff'},when='23 oct (guardada)';
-var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+var R={usd:886.2271,eur:993.0884},N=null,H={},T={buy:null,sell:null},cur='usd',mode='hoy',S={usd:'US$',eur:'€',buy:'USDT',sell:'USDT'},C={usd:'#19d38e',eur:'#7c9aff',buy:'#ffcf55',sell:'#ffcf55'},when='23 oct (guardada)',fxEur=false;
+var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],DIA=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 var ICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
 var OK='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>';
 function lbl(iso){var p=iso.split('-');return Number(p[2])+' '+MES[Number(p[1])-1]}
+function lblD(iso){var p=iso.split('-'),d=new Date(Number(p[0]),Number(p[1])-1,Number(p[2])),s=DIA[d.getDay()];return s.charAt(0).toUpperCase()+s.slice(1)+' '+lbl(iso)}
 function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 try{var c=JSON.parse(localStorage.getItem('tv')||'null');if(c&&c.usd&&c.eur){R={usd:c.usd,eur:c.eur};when=c.when;if(c.buy){T={buy:c.buy,sell:c.sell}}if(c.N&&c.N.date>todayISO())N=c.N;if(c.H)H=c.H}}catch(e){}
 var f=function(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
 var num=function(s){return parseFloat(String(s).replace(/,/g,''))||0};
 var A=document.getElementById('a'),B=document.getElementById('b'),$=function(i){return document.getElementById(i)};
+function isU(){return cur=='buy'||cur=='sell'}
 function copy(t,btn){
   function done(){btn.innerHTML=OK;setTimeout(function(){btn.innerHTML=ICO},1200)}
   function fb(){var x=document.createElement('textarea');x.value=t;x.style.position='fixed';x.style.opacity='0';document.body.appendChild(x);x.select();try{document.execCommand('copy');done()}catch(e){}document.body.removeChild(x)}
@@ -96,23 +99,42 @@ function est(){
   return {usd:R.usd*(1+m),eur:R.eur*(1+m),g:m,approx:true};
 }
 function cv(){return mode=='mon'?(N||est()):R}
-function table(){var r=cv();$('tb').innerHTML=[1,5,10,20,50,100,500,1000].map(function(n){var v=n*r[cur];return '<tr><td>'+S[cur]+' '+f(n)+'</td><td><div class="v"><span>'+f(v)+'</span><button class="cp" data-v="'+v.toFixed(2)+'" aria-label="Copiar">'+ICO+'</button></div></td></tr>'}).join('')}
-function fromA(){var r=cv();B.value=f(num(A.value)*r[cur])}
-function fromB(){var r=cv();A.value=f(num(B.value)/r[cur])}
+function rv(){return isU()?T[cur]:cv()[cur]}
+function table(){
+  var r=rv();
+  $('tb').innerHTML=r?[1,5,10,20,50,100,500,1000].map(function(n){var v=n*r;return '<tr><td>'+S[cur]+' '+f(n)+'</td><td><div class="v"><span>'+f(v)+'</span><button class="cp" data-v="'+v.toFixed(2)+'" aria-label="Copiar">'+ICO+'</button></div></td></tr>'}).join(''):'<tr><td colspan="2">Aún no hay precio de USDT. Toca ↻ para actualizar.</td></tr>';
+}
+function fromA(){var r=rv();B.value=r?f(num(A.value)*r):''}
+function fromB(){var r=rv();if(r)A.value=f(num(B.value)/r)}
 function show(){
-  var wd=new Date().getDay(),ok=(wd==5||wd==6||wd==0);
-  $('seg').hidden=!ok;if(!ok){mode='hoy';$('mh').classList.add('on');$('mm').classList.remove('on')}
-  var r=cv(),ap=!!r.approx,pre=ap?'≈':'';
+  var wd=new Date().getDay(),ok=!isU()&&(!!N||(wd==5||wd==6||wd==0||wd==1));
+  $('seg').hidden=!ok;if(!ok&&!isU()){mode='hoy';$('mh').classList.add('on');$('mm').classList.remove('on')}
+  var m=isU()?'hoy':mode,r=m=='mon'?(N||est()):R,ap=!!r.approx,pre=ap?'≈':'';
   $('vu').textContent=pre+f(r.usd);$('ve').textContent=pre+f(r.eur);
   $('uc').textContent=T.buy?f(T.buy):'—';$('uv').textContent=T.sell?f(T.sell):'—';
-  $('dt').textContent=mode=='mon'?(N?'BCV · Lunes '+lbl(N.date)+' · oficial':'Lunes · aproximado'):'BCV · '+when;
+  if(isU()){$('dt').textContent='USDT · Binance P2P · '+(cur=='buy'?'compra':'venta')}
+  else{$('dt').textContent=mode=='mon'?(N?'Próxima fecha valor · '+lblD(N.date):'Próxima fecha · aproximada'):'BCV · '+when}
   var nt=$('nt');
-  if(mode=='mon'&&ap){nt.hidden=false;nt.textContent='Estimado con la variación diaria reciente ('+(r.g*100).toFixed(2)+'% por día). El BCV publica la tasa oficial del lunes el viernes por la tarde.'}else{nt.hidden=true}
+  if(!isU()&&mode=='mon'&&ap){nt.hidden=false;nt.textContent='Estimado con la variación diaria reciente ('+(r.g*100).toFixed(2)+'% por día). El BCV aún no publica la próxima tasa.'}else{nt.hidden=true}
   table();fromA();
 }
 function setMode(m){mode=m;$('mh').classList.toggle('on',m=='hoy');$('mm').classList.toggle('on',m=='mon');show()}
-function pick(k){cur=k;$('bu').classList.toggle('on',k=='usd');$('be').classList.toggle('on',k=='eur');$('l1').textContent=S[k];$('th1').textContent=S[k];document.documentElement.style.setProperty('--cur',C[k]);table();fromA()}
-function get(u){return fetch(u).then(function(r){return r.json()}).then(function(j){var v=Number(j.promedio||j.venta);if(!(v>0))throw 0;return {v:v,d:String(j.fechaActualizacion||'').slice(0,10)}})}
+function pick(k){
+  cur=k;
+  $('bu').classList.toggle('on',k=='usd');$('be').classList.toggle('on',k=='eur');
+  $('bc').classList.toggle('on',k=='buy');$('bs').classList.toggle('on',k=='sell');
+  $('l1').textContent=S[k];$('th1').textContent=S[k];
+  document.documentElement.style.setProperty('--cur',C[k]);
+  show();
+}
+function jget(u){return fetch(u).then(function(r){if(!r.ok)throw 0;return r.json()})}
+function rate(j){var v=Number(j.promedio||j.venta||j.price);if(!(v>0))throw 0;return {v:v,d:String(j.fechaActualizacion||'').slice(0,10)}}
+function getUSD(){return jget('https://ve.dolarapi.com/v1/dolares/oficial').then(rate)}
+function getEUR(){
+  return jget('https://ve.dolarapi.com/v1/euros/oficial').then(rate)
+  .catch(function(){return jget('https://ve.dolarapi.com/v1/cotizaciones').then(function(a){var x=(Array.isArray(a)?a:[]).filter(function(i){return i.moneda=='EUR'&&i.fuente=='oficial'})[0];if(!x)throw 0;return rate(x)})})
+  .catch(function(){return jget('https://open.er-api.com/v6/latest/USD').then(function(j){var e=j.rates&&j.rates.EUR;if(!(e>0))throw 0;return {fx:1/e}})});
+}
 function p2p(type){
   return fetch('https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fiat:'VES',page:1,rows:5,tradeType:type,asset:'USDT',countries:[],proMerchant:null,publisherType:null,payTypes:[],transAmount:''})})
   .then(function(r){return r.json()}).then(function(j){
@@ -120,30 +142,3 @@ function p2p(type){
     if(!p.length)throw 0;return p[Math.floor(p.length/2)];
   });
 }
-function save(){try{localStorage.setItem('tv',JSON.stringify({usd:R.usd,eur:R.eur,when:when,buy:T.buy,sell:T.sell,N:N,H:H}))}catch(e){}}
-function load(){
-  $('ft').textContent='Actualizando…';
-  var bcv=Promise.all([get('https://ve.dolarapi.com/v1/dolares/oficial'),get('https://ve.dolarapi.com/v1/euros/oficial')]).then(function(x){
-    var d=x[0].d,t=todayISO();
-    if(d&&d>t){N={usd:x[0].v,eur:x[1].v,date:d};H[d]=x[0].v}
-    else{R={usd:x[0].v,eur:x[1].v};when=d?lbl(d):when;if(N&&N.date<=t)N=null;H[d||t]=x[0].v}
-    var ks=Object.keys(H).sort();while(ks.length>12){delete H[ks.shift()]}
-    return 1;
-  }).catch(function(){return 0});
-  var us=Promise.all([p2p('BUY'),p2p('SELL')]).then(function(x){T={buy:x[0],sell:x[1]};return 1}).catch(function(){return 0});
-  Promise.all([bcv,us]).then(function(o){
-    save();show();
-    var h=new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'});
-    $('ft').textContent=(o[0]&&o[1]?'Todo actualizado a las '+h+'.':(o[0]?'BCV actualizado. USDT no disponible.':(o[1]?'USDT actualizado. BCV no disponible.':'Sin conexión. Se muestran los últimos datos guardados.')))+' Se actualiza cada hora mientras la app esté abierta.';
-  });
-}
-$('cb').innerHTML=ICO;
-$('cb').onclick=function(){copy(num(B.value).toFixed(2),this)};
-$('tb').addEventListener('click',function(e){var b=e.target.closest('.cp');if(b)copy(b.getAttribute('data-v'),b)});
-$('bu').onclick=function(){pick('usd')};$('be').onclick=function(){pick('eur')};$('rf').onclick=load;
-$('mh').onclick=function(){setMode('hoy')};$('mm').onclick=function(){setMode('mon')};
-A.addEventListener('input',fromA);B.addEventListener('input',fromB);
-[A,B].forEach(function(x){x.addEventListener('blur',function(){if(x.value.trim()!=='')x.value=f(num(x.value))});x.addEventListener('focus',function(){x.select()})});
-show();pick('usd');load();setInterval(load,3600000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
-</script></body></html>
